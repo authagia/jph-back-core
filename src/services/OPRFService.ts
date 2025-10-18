@@ -1,5 +1,5 @@
 import { Oprf, OPRFClient, OPRFServer } from '@cloudflare/voprf-ts';
-import { SecretKeyLoader } from '../secretLoader';
+import { SecretKeyLoader } from '../../secretLoader';
 
 /**
  * OPRF (Oblivious Pseudorandom Function) サービスクラス
