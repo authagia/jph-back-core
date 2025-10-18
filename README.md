@@ -14,6 +14,8 @@
 - **包括的テスト**: 18個のテストケースによる品質保証
 - **RESTful API**: 標準的なHTTPエンドポイント
 - **エラーハンドリング**: 堅牢なエラー処理とログ機能
+- **API ドキュメント**: Swagger OpenAPI 3.0による自動生成ドキュメント
+- **インタラクティブUI**: Swagger UIによるAPIテスト機能
 
 ## 📦 インストール
 
@@ -78,7 +80,16 @@ async function processData() {
 
 ## 🌐 API エンドポイント
 
-### GET /
+### 📚 API ドキュメント
+
+**Swagger UI**: http://localhost:3000/api-docs/  
+**API仕様書（JSON）**: http://localhost:3000/api-docs.json
+
+インタラクティブなAPIドキュメントで、すべてのエンドポイントの詳細な説明、リクエスト/レスポンスの例、そして実際のAPIテストが可能です。
+
+### 主要エンドポイント
+
+#### GET /
 サーバーの基本情報を取得します。
 
 **レスポンス:**
@@ -90,7 +101,7 @@ async function processData() {
 }
 ```
 
-### GET /api/status
+#### GET /api/status
 サーバーの詳細なステータス情報を取得します。
 
 **レスポンス:**
@@ -105,7 +116,7 @@ async function processData() {
 }
 ```
 
-### POST /upload-binary
+#### POST /upload-binary
 バイナリデータをOPRFプロトコルで処理します。
 
 **リクエスト:**
@@ -116,21 +127,16 @@ async function processData() {
 - Content-Type: `application/octet-stream`
 - Body: 処理済みバイナリデータ
 
-### POST /api/oprf/batch
-複数のデータをバッチでOPRF処理します。
+### エラーレスポンス
 
-**リクエスト:**
+すべてのエンドポイントは統一されたエラーレスポンス形式を返します：
+
 ```json
 {
-    "data": ["string1", "string2", "string3"]
-}
-```
-
-**レスポンス:**
-```json
-{
-    "results": ["base64-result1", "base64-result2", "base64-result3"],
-    "count": 3
+    "error": "エラーメッセージ",
+    "code": "ERROR_CODE",
+    "path": "/api/endpoint",
+    "method": "GET"
 }
 ```
 
@@ -158,6 +164,8 @@ bun test tests/oprf.test.ts
 ```
 jph-back-core/
 ├── src/
+│   ├── config/
+│   │   └── swagger.ts         # Swagger OpenAPI設定
 │   └── services/
 │       ├── OPRFService.ts      # OPRF処理サービス
 │       └── ExpressService.ts   # Expressサーバーサービス
@@ -167,6 +175,7 @@ jph-back-core/
 │   ├── secretLoader.test.ts   # 秘密鍵ローダーテスト
 │   ├── setup.ts               # テストセットアップ
 │   └── README.md              # テストドキュメント
+├── examples/                  # 使用例
 ├── secrets/
 │   └── key.priv               # 秘密鍵ファイル
 ├── index.ts                   # メインエントリーポイント
@@ -209,11 +218,15 @@ bun test
 ### 本番依存関係
 - `@cloudflare/voprf-ts`: OPRFプロトコルの実装
 - `express`: Webサーバーフレームワーク
+- `swagger-jsdoc`: JSDocコメントからOpenAPI仕様を生成
+- `swagger-ui-express`: Swagger UIの提供
 
 ### 開発依存関係
 - `@types/bun`: Bunの型定義
 - `@types/express`: Expressの型定義
 - `@types/supertest`: Supertestの型定義
+- `@types/swagger-jsdoc`: Swagger JSDocの型定義
+- `@types/swagger-ui-express`: Swagger UI Expressの型定義
 - `supertest`: HTTPテストライブラリ
 
 ## 🤝 貢献
