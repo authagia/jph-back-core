@@ -179,7 +179,7 @@ export class ExpressService {
                 const uint8ArrayData: Uint8Array = binaryData;
                 
                 // OPRF処理を実行
-                const result = await this.oprfService!.processData(uint8ArrayData);
+                const result = await this.oprfService!.evaluate(uint8ArrayData);
                 
                 res.set('Content-Type', 'application/octet-stream');
                 res.send(Buffer.from(result));
@@ -194,39 +194,39 @@ export class ExpressService {
         });
 
         // バッチ処理エンドポイント
-        this.app.post('/api/oprf/batch', async (req: Request, res: Response) => {
-            try {
-                const { data } = req.body;
+        // this.app.post('/api/oprf/batch', async (req: Request, res: Response) => {
+        //     try {
+        //         const { data } = req.body;
 
-                if (!Array.isArray(data) || data.length === 0) {
-                    return res.status(400).json({
-                        error: 'Data array is required and must not be empty.',
-                        code: 'INVALID_DATA'
-                    });
-                }
+        //         if (!Array.isArray(data) || data.length === 0) {
+        //             return res.status(400).json({
+        //                 error: 'Data array is required and must not be empty.',
+        //                 code: 'INVALID_DATA'
+        //             });
+        //         }
 
-                // 文字列配列をUint8Arrayに変換
-                const inputs = data.map((item: string) => new TextEncoder().encode(item));
+        //         // 文字列配列をUint8Arrayに変換
+        //         const inputs = data.map((item: string) => new TextEncoder().encode(item));
                 
-                // バッチ処理を実行
-                const results = await this.oprfService!.processBatch(inputs);
+        //         // バッチ処理を実行
+        //         const results = await this.oprfService!.processBatch(inputs);
                 
-                // 結果をBase64エンコードして返す
-                const encodedResults = results.map(result => Buffer.from(result).toString('base64'));
+        //         // 結果をBase64エンコードして返す
+        //         const encodedResults = results.map(result => Buffer.from(result).toString('base64'));
                 
-                res.json({
-                    results: encodedResults,
-                    count: results.length
-                });
+        //         res.json({
+        //             results: encodedResults,
+        //             count: results.length
+        //         });
                 
-            } catch (error) {
-                console.error('Batch OPRF processing error:', error);
-                res.status(500).json({
-                    error: 'Internal server error during batch OPRF processing.',
-                    code: 'BATCH_OPRF_ERROR'
-                });
-            }
-        });
+        //     } catch (error) {
+        //         console.error('Batch OPRF processing error:', error);
+        //         res.status(500).json({
+        //             error: 'Internal server error during batch OPRF processing.',
+        //             code: 'BATCH_OPRF_ERROR'
+        //         });
+        //     }
+        // });
 
         // 404エラーハンドラー
         this.app.use('*', (req: Request, res: Response) => {

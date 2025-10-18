@@ -1,4 +1,4 @@
-import { Oprf, OPRFClient, OPRFServer } from '@cloudflare/voprf-ts';
+import { EvaluationRequest, Oprf, OPRFClient, OPRFServer } from '@cloudflare/voprf-ts';
 import { SecretKeyLoader } from '../../secretLoader';
 
 /**
@@ -17,7 +17,7 @@ import { SecretKeyLoader } from '../../secretLoader';
  */
 export class OPRFService {
     private server: OPRFServer | null = null;
-    private client: OPRFClient | null = null;
+    // private client: OPRFClient | null = null;
     private suite = Oprf.Suite.P384_SHA384;
     private isInitialized = false;
 
@@ -40,7 +40,7 @@ export class OPRFService {
             const privateKey = await loader.getSecretKey();
             
             this.server = new OPRFServer(this.suite, privateKey);
-            this.client = new OPRFClient(this.suite);
+            // this.client = new OPRFClient(this.suite);
             this.isInitialized = true;
         } catch (error) {
             throw new Error(`OPRFサービスの初期化に失敗しました: ${error}`);
@@ -53,7 +53,7 @@ export class OPRFService {
      * @returns 初期化済みかどうか
      */
     isReady(): boolean {
-        return this.isInitialized && this.server !== null && this.client !== null;
+        return this.isInitialized && this.server !== null; //&& this.client !== null;
     }
 
     /**
@@ -63,20 +63,20 @@ export class OPRFService {
      * @returns 処理結果
      * @throws {Error} サービスが初期化されていない場合
      */
-    async processData(input: Uint8Array): Promise<Uint8Array> {
-        this.ensureInitialized();
+    // async processData(input: Uint8Array): Promise<Uint8Array> {
+    //     this.ensureInitialized();
         
-        const batch = [input];
-        const [finData, evalReq] = await this.client!.blind(batch);
-        const evaluation = await this.server!.blindEvaluate(evalReq);
-        const [output] = await this.client!.finalize(finData, evaluation);
+    //     const batch = [input];
+    //     const [finData, evalReq] = await this.client!.blind(batch);
+    //     const evaluation = await this.server!.blindEvaluate(evalReq);
+    //     const [output] = await this.client!.finalize(finData, evaluation);
         
-        if (!output) {
-            throw new Error('OPRF処理の結果が空です');
-        }
+    //     if (!output) {
+    //         throw new Error('OPRF処理の結果が空です');
+    //     }
         
-        return output;
-    }
+    //     return output;
+    // }
 
     /**
      * 複数のデータをバッチでOPRFプロトコルで処理します。
@@ -85,19 +85,19 @@ export class OPRFService {
      * @returns 処理結果の配列
      * @throws {Error} サービスが初期化されていない場合
      */
-    async processBatch(inputs: Uint8Array[]): Promise<Uint8Array[]> {
-        this.ensureInitialized();
+    // async processBatch(inputs: Uint8Array[]): Promise<Uint8Array[]> {
+    //     this.ensureInitialized();
+
+    //     if (inputs.length === 0) {
+    //         return [];
+    //     }
         
-        if (inputs.length === 0) {
-            return [];
-        }
+    //     const [finData, evalReq] = await this.client!.blind(inputs);
+    //     const evaluation = await this.server!.blindEvaluate(evalReq);
+    //     const outputs = await this.client!.finalize(finData, evaluation);
         
-        const [finData, evalReq] = await this.client!.blind(inputs);
-        const evaluation = await this.server!.blindEvaluate(evalReq);
-        const outputs = await this.client!.finalize(finData, evaluation);
-        
-        return outputs.filter((output): output is Uint8Array => output !== undefined);
-    }
+    //     return outputs.filter((output): output is Uint8Array => output !== undefined);
+    // }
 
     /**
      * データの評価のみを実行します（クライアント側のブラインド化は行わない）。
@@ -106,9 +106,9 @@ export class OPRFService {
      * @returns 評価結果
      * @throws {Error} サービスが初期化されていない場合
      */
-    async evaluate(evalReq: any): Promise<any> {
+    async evaluate(rawEvalReq: Uint8Array): Promise<any> {
         this.ensureInitialized();
-        return await this.server!.blindEvaluate(evalReq);
+        return await this.server!.blindEvaluate(EvaluationRequest.deserialize(this.suite, rawEvalReq));
     }
 
     /**
@@ -118,10 +118,10 @@ export class OPRFService {
      * @returns [finData, evalReq] のタプル
      * @throws {Error} サービスが初期化されていない場合
      */
-    async blind(inputs: Uint8Array[]): Promise<[any, any]> {
-        this.ensureInitialized();
-        return await this.client!.blind(inputs);
-    }
+    // async blind(inputs: Uint8Array[]): Promise<[any, any]> {
+    //     this.ensureInitialized();
+    //     return await this.client!.blind(inputs);
+    // }
 
     /**
      * クライアント側でファイナライズ処理を実行します。
@@ -131,11 +131,11 @@ export class OPRFService {
      * @returns 最終結果の配列
      * @throws {Error} サービスが初期化されていない場合
      */
-    async finalize(finData: any, evaluation: any): Promise<Uint8Array[]> {
-        this.ensureInitialized();
-        const outputs = await this.client!.finalize(finData, evaluation);
-        return outputs.filter((output): output is Uint8Array => output !== undefined);
-    }
+    // async finalize(finData: any, evaluation: any): Promise<Uint8Array[]> {
+    //     this.ensureInitialized();
+    //     const outputs = await this.client!.finalize(finData, evaluation);
+    //     return outputs.filter((output): output is Uint8Array => output !== undefined);
+    // }
 
     /**
      * サービスが初期化されていることを確認します。
