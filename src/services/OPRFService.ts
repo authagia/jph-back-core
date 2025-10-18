@@ -1,4 +1,4 @@
-import { EvaluationRequest, Oprf, OPRFClient, OPRFServer } from '@cloudflare/voprf-ts';
+import { EvaluationRequest, Oprf, OPRFServer } from '@cloudflare/voprf-ts';
 import { SecretKeyLoader } from '../../secretLoader';
 
 /**
@@ -26,7 +26,7 @@ export class OPRFService {
      * 
      * @param keyPath 秘密鍵ファイルのパス
      */
-    constructor(private keyPath: string) {}
+    constructor(private keyPath: string) { }
 
     /**
      * OPRFサービスを初期化します。
@@ -38,7 +38,7 @@ export class OPRFService {
         try {
             const loader = new SecretKeyLoader(this.keyPath);
             const privateKey = await loader.getSecretKey();
-            
+
             this.server = new OPRFServer(this.suite, privateKey);
             // this.client = new OPRFClient(this.suite);
             this.isInitialized = true;
@@ -65,16 +65,16 @@ export class OPRFService {
      */
     // async processData(input: Uint8Array): Promise<Uint8Array> {
     //     this.ensureInitialized();
-        
+
     //     const batch = [input];
     //     const [finData, evalReq] = await this.client!.blind(batch);
     //     const evaluation = await this.server!.blindEvaluate(evalReq);
     //     const [output] = await this.client!.finalize(finData, evaluation);
-        
+
     //     if (!output) {
     //         throw new Error('OPRF処理の結果が空です');
     //     }
-        
+
     //     return output;
     // }
 
@@ -91,11 +91,11 @@ export class OPRFService {
     //     if (inputs.length === 0) {
     //         return [];
     //     }
-        
+
     //     const [finData, evalReq] = await this.client!.blind(inputs);
     //     const evaluation = await this.server!.blindEvaluate(evalReq);
     //     const outputs = await this.client!.finalize(finData, evaluation);
-        
+
     //     return outputs.filter((output): output is Uint8Array => output !== undefined);
     // }
 
@@ -106,9 +106,9 @@ export class OPRFService {
      * @returns 評価結果
      * @throws {Error} サービスが初期化されていない場合
      */
-    async evaluate(rawEvalReq: Uint8Array): Promise<any> {
+    async evaluate(rawEvalReq: Uint8Array): Promise<Uint8Array> {
         this.ensureInitialized();
-        return await this.server!.blindEvaluate(EvaluationRequest.deserialize(this.suite, rawEvalReq));
+        return (await this.server!.blindEvaluate(EvaluationRequest.deserialize(this.suite, rawEvalReq))).serialize();
     }
 
     /**
