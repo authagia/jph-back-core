@@ -1,5 +1,6 @@
 import express, { type Request, type Response, type Application } from 'express';
 import { OPRFService } from './OPRFService';
+import { setupSwagger } from '../config/swagger';
 
 /**
  * Expressサーバーサービスクラス
@@ -78,6 +79,7 @@ export class ExpressService {
             console.log(`✅ Expressサーバーが起動しました: http://localhost:${port}`);
             console.log(`📊 ステータス: http://localhost:${port}/api/status`);
             console.log(`🔐 OPRF処理: http://localhost:${port}/upload-binary`);
+            console.log(`📚 API ドキュメント: http://localhost:${port}/api-docs`);
 
             if (callback) {
                 callback();
@@ -143,7 +145,21 @@ export class ExpressService {
      * @private
      */
     private setupRoutes(): void {
-        // ヘルスチェックエンドポイント
+        /**
+         * @swagger
+         * /:
+         *   get:
+         *     summary: ヘルスチェック
+         *     description: サーバーの稼働状況を確認します
+         *     tags: [Health]
+         *     responses:
+         *       200:
+         *         description: サーバーが正常に稼働中
+         *         content:
+         *           application/json:
+         *             schema:
+         *               $ref: '#/components/schemas/HealthResponse'
+         */
         this.app.get('/', (req: Request, res: Response) => {
             res.json({
                 message: 'OPRF Server is running! 🚀',
@@ -152,7 +168,21 @@ export class ExpressService {
             });
         });
 
-        // ステータスエンドポイント
+        /**
+         * @swagger
+         * /api/status:
+         *   get:
+         *     summary: システムステータス
+         *     description: システムとOPRFサービスの詳細なステータス情報を取得します
+         *     tags: [Health]
+         *     responses:
+         *       200:
+         *         description: ステータス情報を正常に取得
+         *         content:
+         *           application/json:
+         *             schema:
+         *               $ref: '#/components/schemas/StatusResponse'
+         */
         this.app.get('/api/status', (req: Request, res: Response) => {
             res.json({
                 status: 'OK',
@@ -164,7 +194,35 @@ export class ExpressService {
             });
         });
 
-        // OPRF処理エンドポイント
+        /**
+         * @swagger
+         * /upload-binary:
+         *   post:
+         *     summary: OPRF処理
+         *     description: バイナリデータに対してOPRF（Oblivious Pseudorandom Function）処理を実行します
+         *     tags: [OPRF]
+         *     requestBody:
+         *       required: true
+         *       content:
+         *         application/octet-stream:
+         *           schema:
+         *             type: string
+         *             format: binary
+         *           description: 処理するバイナリデータ
+         *     responses:
+         *       200:
+         *         description: OPRF処理が正常に完了
+         *         content:
+         *           application/octet-stream:
+         *             schema:
+         *               type: string
+         *               format: binary
+         *             description: 処理結果のバイナリデータ
+         *       400:
+         *         $ref: '#/components/responses/BadRequest'
+         *       500:
+         *         $ref: '#/components/responses/InternalServerError'
+         */
         this.app.post('/upload-binary', async (req: Request, res: Response) => {
             try {
                 const binaryData: Buffer | undefined = req.body;
@@ -228,14 +286,35 @@ export class ExpressService {
         //     }
         // });
 
-        // 404エラーハンドラー
-        this.app.use('/{*any}', (req: Request, res: Response) => {
+        // Swagger UIを設定（404エラーハンドラーの前）
+        setupSwagger(this.app);
+
+        /**
+         * @swagger
+         * /{*any}:
+         *   get:
+         *     summary: 404エラー
+         *     description: 存在しないエンドポイントへのアクセス
+         *     tags: [Error]
+         *     parameters:
+         *       - in: path
+         *         name: any
+         *         required: true
+         *         schema:
+         *           type: string
+         *         description: 任意のパス
+         *     responses:
+         *       404:
+         *         $ref: '#/components/responses/NotFound'
+         */
+        this.app.use((req: Request, res: Response) => {
             res.status(404).json({
                 error: 'Endpoint not found',
                 path: req.originalUrl,
                 method: req.method
             });
         });
+        
         // エラーハンドラー
         this.app.use((error: Error, req: Request, res: Response, next: any) => {
             console.error('Unhandled error:', error);
