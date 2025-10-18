@@ -8,6 +8,7 @@
     "start": "bun run index.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
+    "test:client": "bun run tests/client_index.ts",
     "example:basic": "bun run examples/basic-usage.ts",
     "example:server": "bun run examples/express-server.ts",
     "example:client": "bun run examples/client-example.ts"
