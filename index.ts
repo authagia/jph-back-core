@@ -1,4 +1,5 @@
 import {
+    EvaluationRequest,
     Oprf, OPRFClient, OPRFServer
 } from '@cloudflare/voprf-ts';
 import { SecretKeyLoader } from './secretLoader';
@@ -12,20 +13,20 @@ const server = new OPRFServer(suite, privateKey);
 
 // client code
 
-const client = new OPRFClient(suite);
+// const client = new OPRFClient(suite);
 
-const input = new TextEncoder().encode("This is the client's input");
-const batch = [input];
-const [finData, evalReq] = await client.blind(batch);
+// const input = new TextEncoder().encode("This is the client's input");
+// const batch = [input];
+// const [finData, evalReq] = await client.blind(batch);
 
 // server code
 
-const evaluation = await server.blindEvaluate(evalReq);
+// const evaluation = await server.blindEvaluate(evalReq);
 
-// Get output matching first input of batch
-const [output] = await client.finalize(finData, evaluation);
+// // Get output matching first input of batch
+// const [output] = await client.finalize(finData, evaluation);
 
-console.log(output?.toHex());
+// console.log(output?.toHex());
 
 
 
@@ -91,6 +92,7 @@ app.post('/upload-binary', (req: Request, res: Response) => {
     console.log(`データの最初の10バイト: ${uint8ArrayData.subarray(0, 10)}`);
     
     // const evaluation = await server.blindEvaluate(evalReq);
+    const evalReq = EvaluationRequest.deserialize(suite, uint8ArrayData);
     server.blindEvaluate(evalReq)
     .then(evaluation => {
         res.send(evaluation.serialize());
