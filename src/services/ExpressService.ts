@@ -78,7 +78,7 @@ export class ExpressService {
             console.log(`✅ Expressサーバーが起動しました: http://localhost:${port}`);
             console.log(`📊 ステータス: http://localhost:${port}/api/status`);
             console.log(`🔐 OPRF処理: http://localhost:${port}/upload-binary`);
-            
+
             if (callback) {
                 callback();
             }
@@ -109,9 +109,9 @@ export class ExpressService {
      */
     private setupMiddleware(): void {
         // バイナリデータの処理用ミドルウェア
-        this.app.use(express.raw({ 
-            type: 'application/octet-stream', 
-            limit: '10mb' 
+        this.app.use(express.raw({
+            type: 'application/octet-stream',
+            limit: '10mb'
         }));
 
         // JSONパース用ミドルウェア
@@ -122,7 +122,7 @@ export class ExpressService {
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
             res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-            
+
             if (req.method === 'OPTIONS') {
                 res.sendStatus(200);
             } else {
@@ -177,13 +177,13 @@ export class ExpressService {
                 }
 
                 const uint8ArrayData: Uint8Array = binaryData;
-                
+
                 // OPRF処理を実行
                 const result = await this.oprfService!.evaluate(uint8ArrayData);
-                
+
                 res.set('Content-Type', 'application/octet-stream');
                 res.send(Buffer.from(result));
-                
+
             } catch (error) {
                 console.error('OPRF processing error:', error);
                 res.status(500).json({
@@ -207,18 +207,18 @@ export class ExpressService {
 
         //         // 文字列配列をUint8Arrayに変換
         //         const inputs = data.map((item: string) => new TextEncoder().encode(item));
-                
+
         //         // バッチ処理を実行
         //         const results = await this.oprfService!.processBatch(inputs);
-                
+
         //         // 結果をBase64エンコードして返す
         //         const encodedResults = results.map(result => Buffer.from(result).toString('base64'));
-                
+
         //         res.json({
         //             results: encodedResults,
         //             count: results.length
         //         });
-                
+
         //     } catch (error) {
         //         console.error('Batch OPRF processing error:', error);
         //         res.status(500).json({
@@ -229,14 +229,13 @@ export class ExpressService {
         // });
 
         // 404エラーハンドラー
-        this.app.use('*', (req: Request, res: Response) => {
+        this.app.use('/{*any}', (req: Request, res: Response) => {
             res.status(404).json({
                 error: 'Endpoint not found',
                 path: req.originalUrl,
                 method: req.method
             });
         });
-
         // エラーハンドラー
         this.app.use((error: Error, req: Request, res: Response, next: any) => {
             console.error('Unhandled error:', error);
